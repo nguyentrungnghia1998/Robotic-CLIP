@@ -9,6 +9,7 @@ from utils.dataset_processing import grasp, image, mask
 from .grasp_data import GraspDatasetBase
 import numpy as np
 import clip
+from torchvision import transforms
 class GraspAnythingDataset(GraspDatasetBase):
     """
     Dataset wrapper for the Grasp-Anything dataset.
@@ -25,11 +26,13 @@ class GraspAnythingDataset(GraspDatasetBase):
         self.grasp_files = glob.glob(os.path.join(file_path, 'grasp_label', '*.pt'))
         self.prompt_files = glob.glob(os.path.join(file_path, 'grasp_instructions', '*.pkl'))
         self.rgb_files = glob.glob(os.path.join(file_path, 'image', '*.jpg'))
+        self.part_masks = glob.glob(os.path.join(file_path, 'part_mask', '*.npy'))
         # self.mask_files = glob.glob(os.path.join(file_path, 'mask', '*.npy'))
 
         self.grasp_files.sort()
         self.prompt_files.sort()
         self.rgb_files.sort()
+        self.part_masks.sort()
         # self.mask_files.sort()
 
         self.length = len(self.grasp_files)
@@ -87,3 +90,18 @@ class GraspAnythingDataset(GraspDatasetBase):
         text = text.split(' ')
         text_embed = clip.tokenize(text)
         return text_embed
+    
+    def get_mask(self, idx):
+        mask_file = self.grasp_files[idx].replace(".pt", ".npy")
+        mask_file = mask_file.replace("grasp_label", "part_mask")
+        mask_img = np.load(mask_file)
+        mask_img = mask_img*255
+        mask_transform = transforms.Compose([
+            transforms.ToTensor(), 
+            transforms.Resize((224, 224)), # change to (336,336) when using ViT-L/14@336px
+            transforms.Normalize(0.5, 0.26)
+        ])
+        
+        alpha = mask_transform(mask_img)
+        
+        return alpha

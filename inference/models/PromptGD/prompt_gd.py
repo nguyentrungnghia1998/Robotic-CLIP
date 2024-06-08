@@ -3,6 +3,7 @@ import torch.nn.functional as F
 import torch
 import clip
 import numpy as np
+import alpha_clip
 
 class GraspModel_CLIP(nn.Module):
     """
@@ -15,9 +16,9 @@ class GraspModel_CLIP(nn.Module):
     def forward(self, x_in):
         raise NotImplementedError()
 
-    def compute_loss(self, xc, yc, text):
+    def compute_loss(self, xc, yc, text, alpha = None):
         y_pos, y_cos, y_sin, y_width = yc
-        pos_pred, cos_pred, sin_pred, width_pred = self(xc, text)
+        pos_pred, cos_pred, sin_pred, width_pred = self(xc, text, alpha)
 
         p_loss = F.smooth_l1_loss(pos_pred, y_pos)
         cos_loss = F.smooth_l1_loss(cos_pred, y_cos)
@@ -67,18 +68,26 @@ class TextEncoder(nn.Module):
         return embed
 
 class PromptGDModel(GraspModel_CLIP):
-    def __init__(self, clip_model='ViT-B/32'):
+    def __init__(self, clip_model='ViT-B/32', alpha = False, alpha_vision_ckpt_pth=None):
         super(PromptGDModel, self).__init__()
-        clip_model, _ = clip.load(clip_model, device='cuda')
-        self.clip_model = clip_model.float()
+        self.alpha = alpha
+        if not alpha:
+            clip_model, _ = clip.load(clip_model, device='cuda')
+            self.clip_model = clip_model.float()
+        else:
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+            clip_model, _ = alpha_clip.load(clip_model, alpha_vision_ckpt_pth=alpha_vision_ckpt_pth, device=device)  # change to your own ckpt path
+            self.clip_model = clip_model.float()
         for param in self.clip_model.parameters():
             param.requires_grad = False
         
+        clip_output_dim = self.clip_model.visual.output_dim
+        num_patch = self.clip_model.visual.positional_embedding.shape[0]
         self.logit_scale = nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
-        self.linear = nn.Linear(50, 56*56)
-        self.ln_mask = nn.LayerNorm(512)
+        self.linear = nn.Linear(num_patch, 56*56)
+        self.ln_mask = nn.LayerNorm(clip_output_dim)   # LayerNorm for mask
         self.up = nn.Sequential(nn.Upsample(scale_factor=4, mode='bilinear'),
-                                nn.Conv2d(512, 512, 3, padding=1),
+                                nn.Conv2d(clip_output_dim, 512, 3, padding=1),
                                 nn.BatchNorm2d(512),
                                 nn.GELU()
                                 )
@@ -101,9 +110,13 @@ class PromptGDModel(GraspModel_CLIP):
             nn.Conv2d(512, 1, 1)
         )
         
-    def forward(self, x, text):
+    def forward(self, x, text, alpha = None):
         # Encode image
         x = self.clip_model.visual.conv1(x)
+        
+        if self.alpha:
+            x = x + self.clip_model.visual.conv1_alpha(alpha)
+            
         x = x.reshape(x.shape[0], x.shape[1], -1)  # shape = [*, width, grid ** 2]
         x = x.permute(0, 2, 1)                     # shape = [*, grid ** 2, width]
         x = torch.cat([self.clip_model.visual.class_embedding.to(x.dtype) + torch.zeros(x.shape[0], 
@@ -115,6 +128,7 @@ class PromptGDModel(GraspModel_CLIP):
         x = x.permute(1, 0, 2)  
         x = self.clip_model.visual.ln_post(x)
         x = x @ self.clip_model.visual.proj  # B, L, C
+            
         
         ls = []
         for a in text:

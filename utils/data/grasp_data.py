@@ -11,7 +11,7 @@ class GraspDatasetBase(torch.utils.data.Dataset):
     An abstract dataset for training networks in a common format.
     """
 
-    def __init__(self, output_size=224, include_depth=False, include_rgb=True, random_rotate=False,
+    def __init__(self, output_size=224, include_depth=False, include_rgb=True, include_mask=False, random_rotate=False,
                  random_zoom=False, input_only=False, seen=True):
         """
         :param output_size: Image output size in pixels (square)
@@ -27,6 +27,7 @@ class GraspDatasetBase(torch.utils.data.Dataset):
         self.input_only = input_only
         self.include_depth = include_depth
         self.include_rgb = include_rgb
+        self.include_mask = include_mask
 
         self.grasp_files = []
 
@@ -47,6 +48,9 @@ class GraspDatasetBase(torch.utils.data.Dataset):
         raise NotImplementedError()
 
     def get_rgb(self, idx, rot=0, zoom=1.0):
+        raise NotImplementedError()
+    
+    def get_mask(self, idx):
         raise NotImplementedError()
     
     def get_text_embed(self, idx):
@@ -90,6 +94,11 @@ class GraspDatasetBase(torch.utils.data.Dataset):
             x = self.numpy_to_torch(depth_img)
         elif self.include_rgb:
             x = self.numpy_to_torch(rgb_img)
+            
+        if self.include_mask:
+            mask_img = self.get_mask(idx)
+            
+            x = torch.cat((x, mask_img), 0)
 
         pos = self.numpy_to_torch(pos_img)
         cos = self.numpy_to_torch(np.cos(2 * ang_img))
@@ -98,6 +107,7 @@ class GraspDatasetBase(torch.utils.data.Dataset):
         
         text_embed = self.get_text_embed(idx)    
 
+    
         return x, (pos, cos, sin, width), idx, rot, zoom_factor, text_embed
 
     def __len__(self):
