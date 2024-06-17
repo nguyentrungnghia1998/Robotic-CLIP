@@ -115,3 +115,7 @@ saved_data/
 data/*
 logs/
 # trained-models/grasp_det_seg
+
+test_python.ipynb
+
+bridge_data_v2/
