@@ -34,8 +34,8 @@ def debug_count_all_trajectory(input_path, depth):
                         else:
                             print(f"{trajectory_dir}/{dir}")
                     count_all += count
-                else:
-                    print(f"{trajectory_dir} not found")
+                # else:
+                    # print(f"{trajectory_dir} not found")
                 
     print(f"Total trajectory: {count_all}")
     
