@@ -28,6 +28,8 @@ def debug_count_and_copy(input_path, output_path, number_copy):
     os.makedirs(output_path, exist_ok=True)
     # Choose randomly number_copy directories to copy
     paths_copy = np.random.choice(paths, number_copy, replace=False)
+    
+    print(paths_copy)
     for path in tqdm(paths_copy):
         # Split input_path to get the last directory name
         # Example: input_path = data/demo_8_17/raw/<PATH_TO_TRAJECTORY>/traj0
