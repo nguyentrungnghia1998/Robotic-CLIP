@@ -36,3 +36,7 @@ def debug_count_and_copy(input_path, output_path, number_copy):
         # Split input_path to get <PATH_TO_TRAJECTORY>/trajxxxxx
         path_target = os.path.join(output_path, 'traj{:05d}'.format(i))
         shutil.copytree(path, path_target)
+        
+# Test
+
+debug_count_and_copy(args.input_path, args.output_path, args.number_copy)
