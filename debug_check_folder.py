@@ -5,6 +5,7 @@
 import os
 import glob
 import argparse
+import re
 
 # Create argument parser
 parser = argparse.ArgumentParser(description="Debug check folder")
