@@ -33,6 +33,7 @@ def debug_count_and_copy(input_path, output_path, number_copy):
         # Example: input_path = data/demo_8_17/raw/<PATH_TO_TRAJECTORY>/traj0
         # Split input_path to get <PATH_TO_TRAJECTORY>/traj0
         path_target = path.replace(input_path, output_path)
+        print(path, path_target)
         shutil.copytree(path, path_target)
         
         
