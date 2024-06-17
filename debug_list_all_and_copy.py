@@ -10,7 +10,7 @@ import re
 # Create argument parser
 parser = argparse.ArgumentParser(description="Debug check folder")
 parser.add_argument("--input_path", type=str, help="Input path")
-parser.add_argument("--output_path", type=int, help="Depth")
+parser.add_argument("--output_path", type=str, help="Depth")
 args = parser.parse_args()
 
 
