@@ -29,14 +29,10 @@ def debug_count_and_copy(input_path, output_path, number_copy):
     # Choose randomly number_copy directories to copy
     paths_copy = np.random.choice(paths, number_copy, replace=False)
     
-    print(paths_copy)
-    for path in tqdm(paths_copy):
+    # print(paths_copy)
+    for i, path in tqdm(enumerate(paths_copy)):
         # Split input_path to get the last directory name
         # Example: input_path = data/demo_8_17/raw/<PATH_TO_TRAJECTORY>/traj0
-        # Split input_path to get <PATH_TO_TRAJECTORY>/traj0
-        path_target = path.replace(input_path, output_path)
-        print(path, path_target)
-        shutil.copytree(path, path_target,  dirs_exist_ok=True)
-        
-        
-debug_count_and_copy(args.input_path, args.output_path, number_copy=args.number_copy)
+        # Split input_path to get <PATH_TO_TRAJECTORY>/trajxxxxx
+        path_target = os.path.join(output_path, 'traj{:05d}'.format(i))
+        shutil.copytree(path, path_target)
