@@ -21,6 +21,8 @@ def debug_check_folder(input_path, depth):
         for subdir in subdirs:
             if not re.match(r"\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}", subdir):
                 print(f"{path}/{subdir}")
+            else:
+                print(f"{path}/{subdir} is correct")
                 
 # Test
 
