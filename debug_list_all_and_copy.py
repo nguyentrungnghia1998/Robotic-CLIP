@@ -34,7 +34,7 @@ def debug_count_and_copy(input_path, output_path, number_copy):
         # Split input_path to get the last directory name
         # Example: input_path = data/demo_8_17/raw/<PATH_TO_TRAJECTORY>/traj0
         # Split input_path to get <PATH_TO_TRAJECTORY>/trajxxxxx
-        path_target = os.path.join(output_path, 'traj{:05d}'.format(i))
+        path_target = path.replace(input_path, output_path)
         shutil.copytree(str(path), str(path_target), dirs_exist_ok=True)
         
 # Test
