@@ -18,7 +18,7 @@ args = parser.parse_args()
 
 def debug_count_all_trajectory(input_path, depth):
     count_all = 0
-    paths = glob.glob(os.path.join(input_path, *("*" * (depth - 1)))
+    paths = glob.glob(os.path.join(input_path, *("*" * (depth - 1))))
     for path in paths:
         subdirs = os.listdir(path)
         for subdir in subdirs:
