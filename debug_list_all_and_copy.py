@@ -19,7 +19,7 @@ args = parser.parse_args()
 def debug_count_and_copy(input_path, output_path):
     count_all = 0
     # List all sub directories in input_path have ".*traj[0-9]" pattern
-    paths = glob.glob(os.path.join(input_path, "*traj[0-9]"))
+    paths = glob.glob(f'{input_path}/**/traj[0-9]*', recursive=True)
     print(len(paths))
     
 debug_count_and_copy(args.input_path, args.output_path)
