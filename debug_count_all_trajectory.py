@@ -24,8 +24,11 @@ def debug_count_all_trajectory(input_path, depth):
         for subdir in subdirs:
             if re.match(r"\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}", subdir):
                 trajectory_dir = os.path.join(path, subdir, "raw/traj_group0")
-                count = len(os.listdir(trajectory_dir))
-                count_all += count
+                if os.path.exists(trajectory_dir):
+                    count = len(os.listdir(trajectory_dir))
+                    count_all += count
+                else:
+                    print(f"{trajectory_dir} not found")
                 
     print(f"Total trajectory: {count_all}")
     
